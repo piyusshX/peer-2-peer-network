@@ -43,17 +43,20 @@ def main(torrDict):
     
 # For Testing 
     
-# torrent_dict = {
-#     "announce": "http://tracker.example.com:8080/announce",
-#     "creation date": 1700000000,
-#     "created by": "MiniTorrent 1.0",
-#     "info": {
-#         "length": 12345,
-#         "name": "example.txt",
-#         "piece length": 262144,
-#         "pieces": "aaaaaaaaaaaaaaaaaaaa"
-#     }
-# }
+torrent_dict = {
+    "announce": "http://tracker.example.com:8080/announce",
+    "creation date": 1700000000,
+    "created by": "MiniTorrent 1.0",
+    "info": {
+        "length": 12345,
+        "name": "example.txt",
+        "piece length": 262144,
+        "pieces": "aaaaaaaaaaaaaaaaaaaa"
+    }
+}
 
 
 # main(torrent_dict)
+
+if __name__ == "__main__":
+    print(main(torrent_dict))

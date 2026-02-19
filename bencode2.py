@@ -8,9 +8,10 @@ def decodeString(string, i=0):
     :param i: index at which the digits denoting the length of string start 
     """
     # check if its a valid string format
-    check = string[i].isdigit()
-    if not check:
-        return 1, i
+    check1 = not string[i].isdigit()
+    check2 = string[i] == '0' and string[i+1] != ':'
+    if check1 or check2:
+        return 1, f"Invalid string length at index {i}"
     
     # calculate the length of string
     decodedStringLength = ""
@@ -44,6 +45,16 @@ def decodeInt(string, i=0):
     if string[i] == '-':
         num += '-'
         i += 1
+        if string[i] == '0':
+            return 1, f"invalid integer formatting at index {i}: -0 is not allowed"
+
+    lead = string[i]
+    # check for invalid formats 'ie', 'i00e'
+    if lead == 'e':
+        return 1, f"missing integer at index {i}"
+    elif lead == '0' and string[i+1] != 'e' :
+        return 1, f"invalid integer formatting at index {i}: leading zeroes are not allowed!"
+    
     while(string[i].isdigit()):
         num += string[i]
         i += 1
@@ -51,7 +62,7 @@ def decodeInt(string, i=0):
     # verify the fomatting
     if string[i] == 'e':
         updatedIndex = i+1
-        return 0, num, updatedIndex
+        return 0, int(num), updatedIndex
     else:
         erronousIndex = i+1
         return 1, f"missing end of int 'e' at {erronousIndex}"
@@ -124,7 +135,6 @@ def decodeDict(string, i=0):
         return 1, "invalid dictionary"
     
     dict = {}
-    key = value = None
     i += 1
 
     # find all key value pairs in dict
@@ -137,6 +147,11 @@ def decodeDict(string, i=0):
         else:
             return 1, f'invalid key at index {i}'
         
+        # check if the key preserves order
+        if dict:
+            if key < next(reversed(dict)):
+                return 1, f"invalid input: key '{key}' does not preserve order"
+        
         # finding the corresponding value
         i = index
         status, *rest = main(string, i)
@@ -148,6 +163,9 @@ def decodeDict(string, i=0):
         else:
             return 1, f'invalid value at index {i}'
         # adding the key value entry to the dictionary
+
+        if key in dict:
+            return 1, f"duplicate keys are not allowed! key '{key}' is the bad apple!"
         dict[key] = value
     
     # encountering end of dict 'e'
@@ -160,7 +178,7 @@ def main(string, i=0):
     
     :param string: bencoded input to be decoded
     """
-    if string:
+    try:
         # check input type
         if string[i].isdigit():
             status, *rest = decodeString(string, i)
@@ -187,14 +205,12 @@ def main(string, i=0):
                 return 2, output, updatedIndex, "trailing garbage"
         else:
             return 1, f"error decoding string: {rest[-1]}"
-
-
-
-
+    except IndexError:
+        return 1, f"Index out of range!"
 
 if __name__=="__main__":
     string1 = "d5:helloi69e6:myListli70ei71ee6:mydictd5:firsti72e6:second2:hiee"
-    string2 = "l2:hi3:supi69ee"
+    string2 = "d17:greetings mayank!5:hello5:counti42e5:itemsl5:apple6:bananae6:nestedd5:itemsl5:apple6:bananae6:numberi99eee"
     status, *rest = main(string1)
     if status == 0:
         print(f'success!\n{rest[0]}')
@@ -203,3 +219,4 @@ if __name__=="__main__":
 
     
     print(f"\nexecution complete!")
+

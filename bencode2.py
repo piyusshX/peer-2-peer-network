@@ -1,5 +1,6 @@
 # Decoder for bencoded files
 from pathlib import Path
+import json, pickle
 
 def decodeString(string, i=0):
     """
@@ -9,17 +10,17 @@ def decodeString(string, i=0):
     :param i: index at which the digits denoting the length of string start 
     """
     # check if its a valid string format
-    check1 = not string[i].isdigit()
-    check2 = string[i] == '0' and string[i+1] != ':'
+    check1 = not string[i:i+1].isdigit()
+    check2 = string[i:i+1] == b'0' and string[i+1] != b':'
     if check1 or check2:
         return 1, f"Invalid string length at index {i}"
     
     # calculate the length of string
-    decodedStringLength = ""
-    while(string[i].isdigit()):
-        decodedStringLength+=string[i]
+    decodedStringLength = b""
+    while(string[i:i+1].isdigit()):
+        decodedStringLength+=string[i:i+1]
         i += 1
-    if string[i] == ':': # check validity of format
+    if string[i:i+1] == b':': # check validity of format
         i += 1
     else:
         return 1, i
@@ -37,31 +38,31 @@ def decodeInt(string, i=0):
     :result format: status, decodedInteger, updatedIndex, erronousIndex
     """
     # check validity of format
-    if string[i] != 'i':
+    if string[i:i+1] != b'i':
         return 1, f"invalid format for int: missing 'i' at index {i}"
     i += 1
-    num = ""
+    num = b""
 
     # decipher the number
-    if string[i] == '-':
-        num += '-'
+    if string[i:i+1] == b'-':
+        num += b'-'
         i += 1
-        if string[i] == '0':
+        if string[i:i+1] == b'0':
             return 1, f"invalid integer formatting at index {i}: -0 is not allowed"
 
-    lead = string[i]
+    lead = string[i:i+1]
     # check for invalid formats 'ie', 'i00e'
-    if lead == 'e':
+    if lead == b'e':
         return 1, f"missing integer at index {i}"
-    elif lead == '0' and string[i+1] != 'e' :
+    elif lead == b'0' and string[i+1] != b'e' :
         return 1, f"invalid integer formatting at index {i}: leading zeroes are not allowed!"
     
-    while(string[i].isdigit()):
-        num += string[i]
+    while(string[i:i+1].isdigit()):
+        num += string[i:i+1]
         i += 1
 
     # verify the fomatting
-    if string[i] == 'e':
+    if string[i:i+1] == b'e':
         updatedIndex = i+1
         return 0, int(num), updatedIndex
     else:
@@ -75,13 +76,13 @@ def decodeList(string, i=0):
     :param string: parent string from which list is to be extracted
     :param i: index at which bencoded list begins
     """
-    if string[i] != 'l':
+    if string[i:i+1] != b'l':
         return 1, 'invalid list'
     i += 1
     list = []
 
-    while string[i] != 'e':
-        if string[i].isdigit() and int(string[i]) != 0:
+    while string[i:i+1] != b'e':
+        if string[i:i+1].isdigit() and int(string[i:i+1]) != 0:
             # the list element is a string
             status, *rest = decodeString(string, i)
             if status == 0:
@@ -91,8 +92,8 @@ def decodeList(string, i=0):
             else:
                 return 1, 'invalid string format in list'
         else:
-            match string[i]:
-                case 'i':
+            match string[i:i+1]:
+                case b'i':
                     # the list element is an integer
                     status, *rest = decodeInt(string, i)
                     if status == 0:
@@ -101,7 +102,7 @@ def decodeList(string, i=0):
                         i = updatedIndex
                     else:
                         return 1, 'invalid int format in list'
-                case 'l':
+                case b'l':
                     # the list element is another list
                     status, *rest = decodeList(string, i)
                     if status == 0:
@@ -110,14 +111,15 @@ def decodeList(string, i=0):
                         i = updatedIndex
                     else:
                         return 1, 'invalid list format in list'
-                case 'd':
+                case b'd':
                     # the list element is a dictionary
                     status, *rest = decodeDict(string, i)
                     if status == 0:
                         decodedDict, updatedIndex = rest[0], rest[1]
                         list.append(decodedDict)
                         i = updatedIndex
-                    return 1, 'invalid dict format in list'
+                    else:
+                        return 1, 'invalid dict format in list'
                 case _:
                     # unexpected encounters
                     return 1, 'unexpected encounter in list'
@@ -132,19 +134,19 @@ def decodeDict(string, i=0):
     :param string: parent string from which dict is to be decoded
     :param i: index at which dict starts
     """
-    if string[i] != 'd':
+    if string[i:i+1] != b'd':
         return 1, "invalid dictionary"
     
     dict = {}
     i += 1
 
     # find all key value pairs in dict
-    while string[i] != 'e':
+    while string[i:i+1] != b'e':
 
         # finding the key
         status, *rest = decodeString(string, i)
         if status == 0:
-            key, index = rest[0], rest[1]
+            key, i = rest[0], rest[1]
         else:
             return 1, f'invalid key at index {i}'
         
@@ -154,15 +156,14 @@ def decodeDict(string, i=0):
                 return 1, f"invalid input: key '{key}' does not preserve order"
         
         # finding the corresponding value
-        i = index
         status, *rest = main(string, i)
         if status == 2: # here status 0 would indicate absence of trailing 'e' which denotes the end of dict, making the input invalid
             output, updatedIndex = rest[0], rest[1]
             value, i = output, updatedIndex
         elif status == 0:
-            return 1, f'incomplete input: missing end of dict at index {i}'
+            return 1, f'incomplete input: missing end of dict at index {i}: {rest[-1]}'
         else:
-            return 1, f'invalid value at index {i}'
+            return 1, f'{rest[-1]}'
         # adding the key value entry to the dictionary
 
         if key in dict:
@@ -170,8 +171,8 @@ def decodeDict(string, i=0):
         dict[key] = value
     
     # encountering end of dict 'e'
-    updatedIndex = i + 1
-    return 0, dict, updatedIndex
+    i = i + 1 # updatedIndex
+    return 0, dict, i
 
 def main(string, i=0):
     """
@@ -181,17 +182,17 @@ def main(string, i=0):
     """
     try:
         # check input type
-        if string[i].isdigit():
+        if string[i:i+1].isdigit():
             status, *rest = decodeString(string, i)
         else: 
-            match string[i]:
-                case 'i':
+            match string[i:i+1]:
+                case b'i':
                     status, *rest = decodeInt(string, i)
                 
-                case 'l':
+                case b'l':
                     status, *rest = decodeList(string, i)
                 
-                case 'd':
+                case b'd':
                     status, *rest = decodeDict(string, i)
 
                 case _:
@@ -211,29 +212,35 @@ def main(string, i=0):
     
 def load(file):
     try:
-        stem, source = Path(file).stem, Path(file).read_text()
-        return 0, stem, source
-    except FileNotFoundError:
-        return 1, 'file not found!'
+        stem, parent, source = Path(file).stem, Path(file).parent ,Path(file).read_bytes()
+        return 0, stem, parent, source
+    except FileNotFoundError as e:
+        return 1, f'file not found!\n {e}'
     
-def save(stem, data):
+def save(stem, parent, data):
+    target = Path(f"{parent}/{stem}.bin")
     try:
-        target = Path(f"{stem}.bin")
-        target.write_text(f"{data}")
+        target.write_text(repr(data))
         return 0
     except:
+        target.write_text('some exception occured')
         return 1
 
 
 if __name__=="__main__":
 
-    status, *rest = load('exampleString.torrent')
-    if status == 0:
-        stem, source = rest[0], rest[1]
+    status, *rest = load('c:/Projects/torrent/peer-2-peer-network/examples/exampleString.torrent')
+    if status == 0: # 2033398 exampleString
+        stem, parent, source = rest[0], rest[1], rest[2]
         status, *rest = main(source)
         if status == 0:
-            print(f'success!\n{rest[0]}')
-            save(stem, rest[0])
+            print(f'success!')
+            # print(f'{rest[0]}')
+            status = save(stem, parent, rest[0])
+            if status != 0:
+                print('error while saving!')
+        else:
+            print(f'failure!\n{rest[-1]}')
     else:
         print(f'failure!\n{rest[-1]}')
 

@@ -229,7 +229,7 @@ def save(stem, parent, data):
 
 if __name__=="__main__":
 
-    status, *rest = load('c:/Projects/torrent/peer-2-peer-network/examples/2033398_re_encoded.torrent')
+    status, *rest = load('c:/Projects/torrent/peer-2-peer-network/examples/2033398.torrent')
     if status == 0: # 2033398 exampleString
         stem, parent, source = rest[0], rest[1], rest[2]
         status, *rest = main(source)

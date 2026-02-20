@@ -1,4 +1,5 @@
 # Decoder for bencoded files
+from pathlib import Path
 
 def decodeString(string, i=0):
     """
@@ -207,16 +208,34 @@ def main(string, i=0):
             return 1, f"error decoding string: {rest[-1]}"
     except IndexError:
         return 1, f"Index out of range!"
+    
+def load(file):
+    try:
+        stem, source = Path(file).stem, Path(file).read_text()
+        return 0, stem, source
+    except FileNotFoundError:
+        return 1, 'file not found!'
+    
+def save(stem, data):
+    try:
+        target = Path(f"{stem}.bin")
+        target.write_text(f"{data}")
+        return 0
+    except:
+        return 1
+
 
 if __name__=="__main__":
-    string1 = "d5:helloi69e6:myListli70ei71ee6:mydictd5:firsti72e6:second2:hiee"
-    string2 = "d17:greetings mayank!5:hello5:counti42e5:itemsl5:apple6:bananae6:nestedd5:itemsl5:apple6:bananae6:numberi99eee"
-    status, *rest = main(string1)
+
+    status, *rest = load('exampleString.torrent')
     if status == 0:
-        print(f'success!\n{rest[0]}')
+        stem, source = rest[0], rest[1]
+        status, *rest = main(source)
+        if status == 0:
+            print(f'success!\n{rest[0]}')
+            save(stem, rest[0])
     else:
         print(f'failure!\n{rest[-1]}')
 
-    
-    print(f"\nexecution complete!")
+    print(f"execution complete!")
 

@@ -1,31 +1,32 @@
-def encode_string(str):
-    return f"{len(str)}:{str}"
+def encode_string(bytes):
+    return str(len(bytes)).encode() + b":" + bytes
 
 def encode_int(num):
-    return f"i{num}e"
+    return b"i" + str(num).encode() + b"e"
 
 def encode_list(lst):
-    temp = ""
+    temp = b""
     for item in lst:
         temp_str = type_checker(item)
         temp = temp + temp_str
 
-    return f"l{temp}e"
+    return b"l" + temp + b"e"
 
 def encode_dict(my_dict):
-    temp = ""
-    for key in my_dict:
+    temp = b""
+    sorted_key_list = sorted(my_dict)
+    for key in sorted_key_list:
         temp_str = encode_string(key)
         temp = temp + temp_str
         val = my_dict[key]
         temp_str = type_checker(val)
         temp = temp + temp_str
 
-    return f"d{temp}e"
+    return b"d" + temp + b"e"
 
 def type_checker(val):
     match val:
-            case str():
+            case bytes():
                 return encode_string(val)
             case int():
                 return encode_int(val)
@@ -39,24 +40,20 @@ def type_checker(val):
 
 def main(torrDict): 
     # print(encode_dict(torrDict))
-    return encode_dict(torrDict)
+    try:
+        return 0, encode_dict(torrDict)
+    except Exception as e:
+        print(f"Error: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()  # Shows full stack trace
+        return 1, f"encoding failed: {e}"
     
 # For Testing 
     
-torrent_dict = {
-    "announce": "http://tracker.example.com:8080/announce",
-    "creation date": 1700000000,
-    "created by": "MiniTorrent 1.0",
-    "info": {
-        "length": 12345,
-        "name": "example.txt",
-        "piece length": 262144,
-        "pieces": "aaaaaaaaaaaaaaaaaaaa"
-    }
-}
+torrent_dict = {b'hello': 69, b'myList': [[70, 71],[72, 73]], b'mydict': {b'first': 72, b'second': 2}}
 
 
 # main(torrent_dict)
 
 if __name__ == "__main__":
-    print(main(torrent_dict))
+    print(main(torrent_dict)[1])

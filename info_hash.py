@@ -2,7 +2,7 @@ import hashlib
 from decoder import type_checker
 from bencoding import encode_dict
 
-def main(torr_str):
+def calculate_info_hash(torr_str):
     decoded_dict = type_checker(torr_str) # decoding the torrent file/string
     decoded_dict = decoded_dict[0] # decoded dict
     if 'info' not in decoded_dict:
@@ -13,3 +13,6 @@ def main(torr_str):
 
     info_hash = hashlib.sha1(encoded_info).digest() # Sha1 hash
     return info_hash
+
+def main(torr_str):
+    return calculate_info_hash(torr_str)

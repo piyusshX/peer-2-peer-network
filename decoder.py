@@ -57,5 +57,5 @@ def main(encoded_string):
     print(decoded_dict[0]) 
     # return decoded_dict[0]
 
-mydict = "d8:greeting5:hello5:counti42e5:itemsl5:apple6:bananae6:nestedd5:itemsl5:apple6:bananae6:numberi99eee"
-main(mydict)
+# mydict = "d8:greeting5:hello5:counti42e5:itemsl5:apple6:bananae6:nestedd5:itemsl5:apple6:bananae6:numberi99eee"
+# main(mydict)

@@ -105,7 +105,7 @@ def test_decoder_first(input, show_in_terminal=False):
 if __name__ == "__main__":
     try:
         show_in_terminal = True # Recommended False for bigger files, else the terminal will be cluttered
-        status, *rest = test_decoder_first('c:/Projects/torrent/peer-2-peer-network/examples/exampleString.torrent', show_in_terminal)
+        status, *rest = test_decoder_first('C:/Users/91626/Desktop/p2p_project/example.torrent', show_in_terminal)
         print(f"{rest[-1]}")
 
         # status, *rest = test_encoder_first("c:/Projects/torrent/peer-2-peer-network/examples/exampleString.bin")

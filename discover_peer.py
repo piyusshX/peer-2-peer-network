@@ -2,21 +2,21 @@ import requests
 from decoder import type_checker
 from info_hash import calculate_info_hash
 
-def discover_peer(torr_str, peer_id, port, left):
+def discover_peer(torr_str):
     decoded_dict = type_checker(torr_str) # decoding the torrent file/string
     decoded_dict = decoded_dict[0] # decoded dict
     announce_url = decoded_dict['announce'] # getting the announce url
     info_hash = calculate_info_hash(decoded_dict)
+    left = decoded_dict['info'][b'length'] # getting the length of the file to be downloaded
     # Parameters
     params = {
         'info_hash' : info_hash,
-        'peer_id' : peer_id,
-        'port': port,
-        'uploaded': 1,
-        'downloaded': 1,
+        'peer_id' : 12345678901234567890,
+        'port': 6881,
+        'uploaded': 0,
+        'downloaded': 0,
         'left': left,
         'compact': 1,
-        'event': 'started'
     }
     response = requests.get(announce_url, params=params)
     decoded_res = type_checker(response)

@@ -26,18 +26,17 @@ def test_decoder_first(input, show_in_terminal=False):
     # Parameters
     params = {
         'info_hash' : info_hash,
-        'peer_id' : '2626277',
+        'peer_id' : '12345678901234567890', # 20 byte peer id
         'port': 6881,
-        'uploaded': 1,
-        'downloaded': 1,
-        'left': 57479,
+        'uploaded': 0,
+        'downloaded': 0,
+        'left': 24140623,
         'compact': 1,
-        'event': 'started'
     }
 
     response = requests.get(announce_url, params=params)
-    print(response) # <Response [400]>
-    decoded_res = decode(response)
+    # print(response._content)
+    decoded_res = decode(response._content)
     print(decoded_res)
 
     return 0, f"tests completed!"

@@ -53,9 +53,8 @@ def type_checker(str):
         
 
 def main(encoded_string): 
+    encoded_string = encoded_string.decode()
     decoded_dict = type_checker(encoded_string) # Tuple of 2 elements is returned (dict, skip_length)
     print(decoded_dict[0]) 
     # return decoded_dict[0]
 
-# mydict = "d8:greeting5:hello5:counti42e5:itemsl5:apple6:bananae6:nestedd5:itemsl5:apple6:bananae6:numberi99eee"
-# main(mydict)

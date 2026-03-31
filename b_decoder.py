@@ -11,7 +11,7 @@ def decodeString(string, i=0):
     """
     # check if its a valid string format
     check1 = not string[i:i+1].isdigit()
-    check2 = string[i:i+1] == b'0' and string[i+1] != b':'
+    check2 = string[i:i+1] == b'0' and string[i+1:i+2] != b':'
     if check1 or check2:
         return 1, f"Invalid string length at index {i}"
     

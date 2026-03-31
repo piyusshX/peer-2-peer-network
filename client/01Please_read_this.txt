@@ -1,0 +1,13 @@
+This folder is where we start assembling the files that are completed.
+
+we have the encoder, decoder, and hasher.
+now we also have tracker, which contacts, lo and behold, the tracker. it also gives the peer list.
+now we needa handshake
+
+building the peer.py... (ye sab 8 baje ke pahle likha tha jab maja aa rha tha)
+
+
+2:28 AM
+run karne ke liye python main.py
+or koi tareeka nahi hai run karne ka
+abhi piece manager main dikkat aa raha hai

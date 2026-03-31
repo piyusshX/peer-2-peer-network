@@ -1,5 +1,4 @@
 import hashlib
-from decoder import type_checker
 from bencoding import encode_dict
 
 

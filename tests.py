@@ -16,9 +16,9 @@ def test_decoder_first(input, show_in_terminal=False):
         return 1, f"Error while decoding: \n {rest[-1]}"
     decoded_data = rest[0]
     # optional: save the decoded data
-    # status = save(stem, parent, decoded_data)
-    # if status != 0:
-    #     print(f"Failed to save the decoded file as {stem}.bin. Continueing to verify...", flush=True)
+    status = save(stem, parent, decoded_data)
+    if status != 0:
+        print(f"Failed to save the decoded file as {stem}.bin. Continueing to verify...", flush=True)
     
     # re-encode the decoded data
     status, *rest = bencode(decoded_data)
@@ -26,9 +26,9 @@ def test_decoder_first(input, show_in_terminal=False):
         return 1, print(rest[-1])
     re_encoded_data = rest[0]
     # optional: save the re-encoded file
-    # status = save(stem+'_re_encoded', parent, re_encoded_data)
-    # if status != 0:
-    #     print(f"Failed to save the re_encoded file as {stem+'_re_encoded'}.bin. Continueing to verify...", flush=True)
+    status = save(stem+'_re_encoded', parent, re_encoded_data)
+    if status != 0:
+        print(f"Failed to save the re_encoded file as {stem+'_re_encoded'}.bin. Continueing to verify...", flush=True)
 
 
     # match and verify
@@ -47,9 +47,9 @@ def test_decoder_first(input, show_in_terminal=False):
         return 1, f"Error while re_decoding: \n {rest[-1]}"
     re_decoded_data = rest[0]
     # optional: save the re_decoded data
-    # status = save(stem+'_re_decoded', parent, re_decoded_data)
-    # if status != 0:
-    #     print(f"Failed to save the re_decoded file as {stem+'_re_decoded'}.bin. Continueing to verify...", flush=True)
+    status = save(stem+'_re_decoded', parent, re_decoded_data)
+    if status != 0:
+        print(f"Failed to save the re_decoded file as {stem+'_re_decoded'}.bin. Continueing to verify...", flush=True)
     
     print("Results of test 2: decoded input vs re-decoded input")
     if show_in_terminal: # print in terminal
@@ -104,11 +104,11 @@ def test_decoder_first(input, show_in_terminal=False):
 
 if __name__ == "__main__":
     try:
-        show_in_terminal = True # Recommended False for bigger files, else the terminal will be cluttered
-        status, *rest = test_decoder_first('c:/Projects/torrent/peer-2-peer-network/examples/exampleString.torrent', show_in_terminal)
+        show_in_terminal = False # Recommended False for bigger files, else the terminal will be cluttered
+        status, *rest = test_decoder_first('c:/Projects/torrent/peer-2-peer-network/examples/2033398.torrent', show_in_terminal)
         print(f"{rest[-1]}")
 
         # status, *rest = test_encoder_first("c:/Projects/torrent/peer-2-peer-network/examples/exampleString.bin")
         # print(f"test 2 results:\n{rest[-1]}")
-    except:
-        print("Some exception occured")
+    except Exception as e:
+        print(f"{e}\nSome exception occured")

@@ -35,7 +35,7 @@ def download_and_save(num_pieces, peer_list, peer_id, info_hash, piece_length, p
                 # handshake + get unchoked
                 print(f"Trying peer {i}/{total_peers}", end='\r', flush=True)
                 s, bitfield = contact_peer(my_peer_id=peer_id, peer=peer, info_hash=info_hash)
-                print(f"\n")
+                print(f"")
 
                 # if not peer_has_piece(bitfield, piece_index):
                 #     print(f"\npeer {i} does not have piece\n")
@@ -59,10 +59,10 @@ def download_and_save(num_pieces, peer_list, peer_id, info_hash, piece_length, p
             print(f"\nNo peer offered piece {piece_index}")
             i = 0
 
-        # manual stopper
-        if piece_index == 10:
-            print(f"stopping after piece {piece_index}")
-            break
+        # # manual stopper
+        # if piece_index == 10:
+        #     print(f"stopping after piece {piece_index}")
+        #     break
     
     return
 

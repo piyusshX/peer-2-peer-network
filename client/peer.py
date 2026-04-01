@@ -9,7 +9,7 @@ def contact_peer(my_peer_id, peer, info_hash):
     port = int(port)
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(2)
+    s.settimeout(1.5)
 
     s.connect((ip, port))
     # print(f'\nconnected to {peer}')
@@ -51,10 +51,10 @@ def contact_peer(my_peer_id, peer, info_hash):
         msg_id = msg[0]
 
         if msg_id == 5:
-            print(f"\nBITFIELD")
+            # print(f"\nBITFIELD")
             bitfield = msg[1:]
         elif msg_id == 1:
-            print(f"\nUNCHOKED")
+            # print(f"\nUNCHOKED")
             unchoked = True
             break
         elif msg_id == 7:

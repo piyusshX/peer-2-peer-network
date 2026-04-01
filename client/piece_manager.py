@@ -59,29 +59,33 @@ def download_one_block(s, index=0, begin=0, length=16384): # the one block is re
 
 def download_from_peer(s, piece_index, piece_length, pieces_hash):
     piece_data = b''
-    i = 1
-    # print(f"piece length: {piece_length}")
-    for begin in range(0, piece_length, 16384):
-        # print(f"Downloading block {i}")
-        length = min(16384, piece_length - begin)
-        block = download_one_block(s, piece_index, begin=begin, length=length)
-        if block is None:
-            print(f"\nBlock failed!", end='')
-            break
-        piece_data += block
-        # print(f"Block  {i} downloaded of length {length}")
-        print(f"{i}/{math.ceil(piece_length/16384)} blocks downloaded", end='\r', flush=True)
-        i+=1
-    print(f"\n")
-    # verification of ONE PIECE
-    hash = hashlib.sha1(piece_data).digest()
-    torr_hash = pieces_hash[piece_index*20:20+piece_index*20]
+    total_blocks = math.ceil(piece_length / 16384)
 
-    # print(f"hash of downloaded piece: \n{hash}")   
-    # print(torr_hash)
-    if hash == torr_hash:
-        # print(f"hash matched")
+    for i, begin in enumerate(range(0, piece_length, 16384), start=1):
+        length = min(16384, piece_length - begin)
+
+        block = download_one_block(s, piece_index, begin=begin, length=length)
+
+        if block is None:
+            print(f"\nBlock failed!\n")
+            return None
+
+        piece_data += block
+        print(f"{i}/{total_blocks} blocks downloaded", end='\r', flush=True)
+
+    print("")
+
+    # Ensure full piece received
+    if len(piece_data) != piece_length:
+        print("Incomplete piece")
+        return None
+
+    # Verify hash
+    hash_val = hashlib.sha1(piece_data).digest()
+    torr_hash = pieces_hash[piece_index*20:(piece_index+1)*20]
+
+    if hash_val == torr_hash:
         return piece_data
     else:
         print(f"piece {piece_index} is wrong")
-        raise Exception("piece is wrong")
+        return None

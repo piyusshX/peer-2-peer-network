@@ -7,11 +7,12 @@ def create_empty_file(filename, total_size):
         f.truncate(total_size)
 
 def write_piece(filename, piece_index, piece_data, piece_length):
-    offset = piece_index * piece_length
+    pass
+    # offset = piece_index * piece_length
 
-    with open(filename, "r+b") as f:
-        f.seek(offset)
-        f.write(piece_data)
+    # with open(filename, "r+b") as f:
+    #     f.seek(offset)
+    #     f.write(piece_data)
 
 def peer_has_piece(bitfield, piece_index):
     byte_index = piece_index // 8
@@ -53,7 +54,7 @@ def download_and_save(num_pieces, peer_list, peer_id, info_hash, piece_length, p
                 break
 
             except Exception as e:
-                print(f"Exception raised: {e}")
+                # print(f"Exception raised: {e}")
                 continue
         else:
             print(f"\nNo peer offered piece {piece_index}")

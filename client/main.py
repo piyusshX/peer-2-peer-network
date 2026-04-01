@@ -15,7 +15,7 @@ from piece_manager import download_from_peer
 from downloader import create_empty_file, write_piece, download_and_save
 
 peer_id = b'-PC0001-' + os.urandom(12)
-torr_file = 'c:/Projects/torrent/peer-2-peer-network/examples/1134459.torrent'
+torr_file = 'c:/Projects/torrent/peer-2-peer-network/examples/2033398.torrent'
 
 
 if __name__=="__main__":
@@ -45,7 +45,7 @@ if __name__=="__main__":
         print(f"peers found: {len(peer_list)}", flush=True)
 
         # step 3: contact the peers and download pieces
-        create_empty_file("output.file", total_size=length)
+        # create_empty_file("output.file", total_size=length)
         download_and_save(num_pieces, peer_list, peer_id, info_hash, piece_length, pieces)
 
     except Exception as e:

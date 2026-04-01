@@ -11,9 +11,12 @@ from info_hash import calculate_info_hash
 from tracker import contact_tracker, get_peer_list
 from peer import contact_peer
 from protocol import check_peer_response
-from piece_manager import download_from_peer
 from downloader import create_empty_file, save_piece, download_and_save
 from progress_manager import load_progress, show_progress
+from assemble_file import assemble_file
+import time
+
+start = time.time()
 
 peer_id = b'-PC0001-' + os.urandom(12)
 torr_file = 'c:/Projects/torrent/peer-2-peer-network/examples/2092471.torrent'
@@ -50,7 +53,7 @@ if __name__=="__main__":
 
         # step 3: contact the peers and download pieces
         # create_empty_file("output.file", total_size=length)
-        download_and_save(num_pieces, peer_list, peer_id, info_hash, piece_length, pieces, name)
+        download_and_save(num_pieces, peer_list, peer_id, info_hash, piece_length, pieces, name, total_length=length, )
 
         # step 4: retry missing pieces:
         total, downloaded_pieces = load_progress(name)
@@ -60,5 +63,15 @@ if __name__=="__main__":
         print(f"missing pieces:{missing}")
         show_progress(downloaded_pieces, num_pieces)
 
+        # step 5: assemble file
+        print(f"")
+        assemble_file(num_pieces, name, output_path="output", final_output="output file")
+
+        # step 6: happi
+        end = time.time()
+        length = end - start
+        min = int(length / 60)
+        sec = int(length % 60)
+        print(f"It took {min} minutes {sec} seconds!")
     except Exception as e:
         print(e)

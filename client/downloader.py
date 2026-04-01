@@ -2,6 +2,7 @@
 import os
 from peer import contact_peer
 from piece_manager import download_from_peer
+from progress_manager import save_progress, load_progress, show_progress
 
 def create_empty_file(filename, total_size):
     with open(filename, "wb") as f:
@@ -25,45 +26,114 @@ def peer_has_piece(bitfield, piece_index):
 
 def download_and_save(num_pieces, peer_list, peer_id, info_hash, piece_length, pieces, name):
     total_peers = len(peer_list)
-    for piece_index in range(num_pieces):
-        print(f"\nDownloading piece {piece_index}")
-        i = 0
+    total, downloaded_pieces = load_progress(name)
 
-        for peer in peer_list:
-            i+=1
+    if total == 0:
+        total = num_pieces
+
+    working_peers = []
+
+    # MAIN LOOP: until all pieces done
+    while len(downloaded_pieces) < num_pieces:
+
+        progress_made = False
+
+        # 1. TRY WORKING PEERS FIRST
+        for peer, s, bitfield in working_peers[:]:
             try:
-                # handshake + get unchoked
-                print(f"Trying peer {i}/{total_peers}", end='\r', flush=True)
-                s, bitfield = contact_peer(my_peer_id=peer_id, peer=peer, info_hash=info_hash)
-                print(f"")
+                print(f"\nUsing working peer {peer}")
 
-                # if not peer_has_piece(bitfield, piece_index):
-                #     print(f"\npeer {i} does not have piece\n")
-                #     continue
+                for piece_index in range(num_pieces):
+                    if piece_index in downloaded_pieces:
+                        continue
 
-                # download a piece from peer
-                piece_data = download_from_peer(s, piece_index, piece_length, pieces)
+                    if bitfield and not peer_has_piece(bitfield, piece_index):
+                        continue
 
-                if piece_data is None:
+                    print(f"Downloading piece {piece_index} from working peer")
+
+                    piece_data = download_from_peer(s, piece_index, piece_length, pieces)
+
+                    if piece_data is None:
+                        continue
+
+                    save_piece(piece_index, piece_data, name)
+                    downloaded_pieces.add(piece_index)
+                    save_progress(name, num_pieces, downloaded_pieces)
+
+                    print(f"Piece {piece_index} saved")
+                    show_progress(downloaded_pieces, num_pieces)
+
+                    progress_made = True
+
+                # keep using this peer
+            except Exception:
+                print(f"Peer {peer} failed, removing")
+                try:
+                    s.close()
+                except:
+                    pass
+                working_peers.remove((peer, s, bitfield))
+
+        # 2. IF NO PROGRESS → FIND NEW PEERS
+        if not progress_made:
+            print("\nSearching for new working peers...")
+
+            for i, peer in enumerate(peer_list):
+                try:
+                    print(f"Trying peer {i+1}/{total_peers}", end='\r', flush=True)
+
+                    s, bitfield = contact_peer(
+                        my_peer_id=peer_id,
+                        peer=peer,
+                        info_hash=info_hash
+                    )
+
+                    print(f"\nConnected to {peer}")
+
+                    # try downloading ONE piece to validate peer
+                    for piece_index in range(num_pieces):
+                        if piece_index in downloaded_pieces:
+                            continue
+
+                        if bitfield and not peer_has_piece(bitfield, piece_index):
+                            continue
+
+                        piece_data = download_from_peer(s, piece_index, piece_length, pieces)
+
+                        if piece_data is None:
+                            continue
+
+                        # ✅ success → promote to working peer
+                        working_peers.append((peer, s, bitfield))
+
+                        save_piece(piece_index, piece_data, name)
+                        downloaded_pieces.add(piece_index)
+                        save_progress(name, num_pieces, downloaded_pieces)
+
+                        print(f"Piece {piece_index} saved (new peer)")
+                        show_progress(downloaded_pieces, num_pieces)
+
+                        progress_made = True
+                        break
+
+                    if progress_made:
+                        break
+
+                    else:
+                        s.close()
+
+                except Exception:
                     continue
 
-                # piece hash is already verified
-                save_piece(piece_index, piece_data, name)
-                print(f"Piece {piece_index} saved")
-                break
+        # ❌ If still no progress → exit
+        if not progress_made:
+            print("\nNo progress possible. Stopping.")
+            break
 
-            except Exception as e:
-                # print(f"Exception raised: {e}")
-                continue
-        else:
-            print(f"\nNo peer offered piece {piece_index}")
-            i = 0
-
-        # # manual stopper
-        # if piece_index == 10:
-        #     print(f"stopping after piece {piece_index}")
-        #     break
-    
-    return
-
-
+    # cleanup
+    for _, s, _ in working_peers:
+        try:
+            s.close()
+        except:
+            pass

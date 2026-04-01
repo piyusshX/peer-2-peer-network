@@ -12,7 +12,7 @@ def contact_peer(my_peer_id, peer, info_hash):
     s.settimeout(1.5)
 
     s.connect((ip, port))
-    # print(f'\nconnected to {peer}')
+
     pstrlen = b'\x13'
     pstr = b'BitTorrent protocol'
     reserved = b'\x00' * 8
@@ -24,25 +24,33 @@ def contact_peer(my_peer_id, peer, info_hash):
         info_hash +
         my_peer_id
     )
-    s.send(handshake)
-    response = s.recv(68)
-    # print(f"Handshake successful!") # peer found
-    recv_pstrlen = response[0]
-    recv_pstr = response[1:20]
-    recv_reserved = response[20:28]
-    recv_info_hash = response[28:48]
-    recv_peer_id = response[48:68]
-    if pstr != recv_pstr:
-        raise Exception("Not bittorrent peer")
-    if recv_info_hash != info_hash:
-        raise Exception(f"info hash mismatch \n{recv_info_hash} \n{info_hash}")
-    # print(f"connected to swarm \npeer: {recv_peer_id}") # communication started
 
-    # try to get unchoked from peer
+    s.send(handshake)
+
+    # ensure full handshake read
+    response = recv_exact(s, 68)
+
+    recv_pstr = response[1:20]
+    recv_info_hash = response[28:48]
+
+    if recv_pstr != pstr:
+        raise Exception("Not bittorrent peer")
+
+    if recv_info_hash != info_hash:
+        raise Exception("info hash mismatch")
+
+    # send INTERESTED immediately
+    s.send(struct.pack(">I", 1) + bytes([2]))
+
+    bitfield = None
     unchoked = False
 
-    while True:
-        length = struct.unpack(">I", recv_exact(s, 4))[0]
+    # bounded loop (prevents hanging)
+    for _ in range(10):
+        try:
+            length = struct.unpack(">I", recv_exact(s, 4))[0]
+        except:
+            break
 
         if length == 0:
             continue
@@ -51,19 +59,18 @@ def contact_peer(my_peer_id, peer, info_hash):
         msg_id = msg[0]
 
         if msg_id == 5:
-            # print(f"\nBITFIELD")
             bitfield = msg[1:]
+
         elif msg_id == 1:
-            # print(f"\nUNCHOKED")
             unchoked = True
             break
-        elif msg_id == 7:
-            print("you got 7 for some reason here")
+
+        elif msg_id == 0:
+            # choked
+            continue
 
     if not unchoked:
-        print(f"Failed to connect \nchecking next peer")
-        raise Exception("Failed to connect")
-    else:
-        return s, bitfield # now we are unchoked and we can talk to peer
+        s.close()
+        raise Exception("Failed to unchoke")
 
-
+    return s, bitfield

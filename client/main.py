@@ -13,6 +13,7 @@ from peer import contact_peer
 from protocol import check_peer_response
 from piece_manager import download_from_peer
 from downloader import create_empty_file, save_piece, download_and_save
+from progress_manager import load_progress, show_progress
 
 peer_id = b'-PC0001-' + os.urandom(12)
 torr_file = 'c:/Projects/torrent/peer-2-peer-network/examples/2092471.torrent'
@@ -50,6 +51,14 @@ if __name__=="__main__":
         # step 3: contact the peers and download pieces
         # create_empty_file("output.file", total_size=length)
         download_and_save(num_pieces, peer_list, peer_id, info_hash, piece_length, pieces, name)
+
+        # step 4: retry missing pieces:
+        total, downloaded_pieces = load_progress(name)
+        if total == 0:
+            total = num_pieces
+        missing = set(range(num_pieces)) - downloaded_pieces
+        print(f"missing pieces:{missing}")
+        show_progress(downloaded_pieces, num_pieces)
 
     except Exception as e:
         print(e)

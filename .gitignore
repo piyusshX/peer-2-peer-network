@@ -4,3 +4,4 @@
 __pycache__/*
 
 client/output.file
+client/output/*/_progress

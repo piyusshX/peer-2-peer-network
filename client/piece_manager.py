@@ -66,7 +66,7 @@ def download_from_peer(s, piece_index, piece_length, pieces_hash):
         length = min(16384, piece_length - begin)
         block = download_one_block(s, piece_index, begin=begin, length=length)
         if block is None:
-            print("Block failed!", end='')
+            print(f"\nBlock failed!", end='')
             break
         piece_data += block
         # print(f"Block  {i} downloaded of length {length}")
@@ -75,7 +75,7 @@ def download_from_peer(s, piece_index, piece_length, pieces_hash):
     print(f"\n")
     # verification of ONE PIECE
     hash = hashlib.sha1(piece_data).digest()
-    torr_hash = pieces_hash[0:20]
+    torr_hash = pieces_hash[piece_index*20:20+piece_index*20]
 
     # print(f"hash of downloaded piece: \n{hash}")   
     # print(torr_hash)

@@ -12,10 +12,10 @@ from tracker import contact_tracker, get_peer_list
 from peer import contact_peer
 from protocol import check_peer_response
 from piece_manager import download_from_peer
-from downloader import create_empty_file, write_piece, download_and_save
+from downloader import create_empty_file, save_piece, download_and_save
 
 peer_id = b'-PC0001-' + os.urandom(12)
-torr_file = 'c:/Projects/torrent/peer-2-peer-network/examples/2033398.torrent'
+torr_file = 'c:/Projects/torrent/peer-2-peer-network/examples/2092471.torrent'
 
 
 if __name__=="__main__":
@@ -24,14 +24,17 @@ if __name__=="__main__":
         torr_dict = load_and_decode(torr_file) # global torrent file data
         pieces = torr_dict[b'info'][b'pieces'] # piece hashes
         piece_length = torr_dict[b'info'][b'piece length']
+        name = torr_dict[b'info'][b'name'].decode() # name of the file/folder we are going to geet
         num_pieces = len(pieces) // 20
+
+        print(f"target: {name}")
         print(f"{num_pieces} pieces hashes found in file") # but last piece may be smaller
         # calculating total size
         if b'length' in torr_dict[b'info']: # single file torrent
             length = torr_dict[b'info'][b'length']
         else: # multi file torrent
             length = sum(file[b'length'] for file in torr_dict[b'info'][b'files'])
-        print(f"total file size: {length}")
+        print(f"total file size: ~{int(length / (1024*1024))} Mib") # length in mb
 
         # step 2: contact tracker with my peer id and get peer list from tracker
         info_hash, tracker_response = contact_tracker(peer_id, torr_dict, length)
@@ -46,7 +49,7 @@ if __name__=="__main__":
 
         # step 3: contact the peers and download pieces
         # create_empty_file("output.file", total_size=length)
-        download_and_save(num_pieces, peer_list, peer_id, info_hash, piece_length, pieces)
+        download_and_save(num_pieces, peer_list, peer_id, info_hash, piece_length, pieces, name)
 
     except Exception as e:
         print(e)

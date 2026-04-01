@@ -1,4 +1,5 @@
 # the greatest loop of all time that combines pieces to download the file
+import os
 from peer import contact_peer
 from piece_manager import download_from_peer
 
@@ -6,13 +7,12 @@ def create_empty_file(filename, total_size):
     with open(filename, "wb") as f:
         f.truncate(total_size)
 
-def write_piece(filename, piece_index, piece_data, piece_length):
-    pass
-    # offset = piece_index * piece_length
+def save_piece(piece_index, piece_data, name):
+    os.makedirs(f"output/{name}", exist_ok=True)
+    filename = f"output/{name}/{piece_index}.bin"
 
-    # with open(filename, "r+b") as f:
-    #     f.seek(offset)
-    #     f.write(piece_data)
+    with open(filename, "wb") as f:
+        f.write(piece_data)
 
 def peer_has_piece(bitfield, piece_index):
     byte_index = piece_index // 8
@@ -23,9 +23,8 @@ def peer_has_piece(bitfield, piece_index):
 
     return (bitfield[byte_index] >> bit_index) & 1
 
-def download_and_save(num_pieces, peer_list, peer_id, info_hash, piece_length, pieces):
+def download_and_save(num_pieces, peer_list, peer_id, info_hash, piece_length, pieces, name):
     total_peers = len(peer_list)
-    piece_index = 0
     for piece_index in range(num_pieces):
         print(f"\nDownloading piece {piece_index}")
         i = 0
@@ -38,9 +37,9 @@ def download_and_save(num_pieces, peer_list, peer_id, info_hash, piece_length, p
                 s, bitfield = contact_peer(my_peer_id=peer_id, peer=peer, info_hash=info_hash)
                 print(f"\n")
 
-                if not peer_has_piece(bitfield, piece_index):
-                    print(f"\npeer {i} does not have piece\n")
-                    continue
+                # if not peer_has_piece(bitfield, piece_index):
+                #     print(f"\npeer {i} does not have piece\n")
+                #     continue
 
                 # download a piece from peer
                 piece_data = download_from_peer(s, piece_index, piece_length, pieces)
@@ -49,7 +48,7 @@ def download_and_save(num_pieces, peer_list, peer_id, info_hash, piece_length, p
                     continue
 
                 # piece hash is already verified
-                write_piece("output.file", piece_index, piece_data, piece_length)
+                save_piece(piece_index, piece_data, name)
                 print(f"Piece {piece_index} saved")
                 break
 
@@ -61,11 +60,10 @@ def download_and_save(num_pieces, peer_list, peer_id, info_hash, piece_length, p
             i = 0
 
         # manual stopper
-        if piece_index == 1:
+        if piece_index == 10:
             print(f"stopping after piece {piece_index}")
             break
     
-    print("nothing happened")
     return
 
 

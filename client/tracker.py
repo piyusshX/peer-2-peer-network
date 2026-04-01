@@ -4,15 +4,9 @@ import requests
 from info_hash import calculate_info_hash
 from decoder import main as decode, load_and_decode
 
-def contact_tracker(peer_id, torr_dict):
+def contact_tracker(peer_id, torr_dict, length):
     info_hash = calculate_info_hash(torr_dict)
     announce_url = torr_dict[b'announce'] # getting the announce url
-    # calculating total size
-    if b'length' in torr_dict[b'info']: # single file torrent
-        length = torr_dict[b'info'][b'length']
-    else: # multi file torrent
-        length = sum(file[b'length'] for file in torr_dict[b'info'][b'files'])
-    print(length)
     # Parameters
     params = {
         'info_hash' : info_hash,

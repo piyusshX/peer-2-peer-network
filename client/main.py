@@ -12,6 +12,7 @@ from tracker import contact_tracker, get_peer_list
 from peer import contact_peer
 from protocol import check_peer_response
 from piece_manager import download_from_peer
+from downloader import create_empty_file, write_piece, download_and_save
 
 peer_id = b'-PC0001-' + os.urandom(12)
 torr_file = 'c:/Projects/torrent/peer-2-peer-network/examples/1134459.torrent'
@@ -25,9 +26,15 @@ if __name__=="__main__":
         piece_length = torr_dict[b'info'][b'piece length']
         num_pieces = len(pieces) // 20
         print(f"{num_pieces} pieces hashes found in file") # but last piece may be smaller
+        # calculating total size
+        if b'length' in torr_dict[b'info']: # single file torrent
+            length = torr_dict[b'info'][b'length']
+        else: # multi file torrent
+            length = sum(file[b'length'] for file in torr_dict[b'info'][b'files'])
+        print(f"total file size: {length}")
 
         # step 2: contact tracker with my peer id and get peer list from tracker
-        info_hash, tracker_response = contact_tracker(peer_id, torr_dict)
+        info_hash, tracker_response = contact_tracker(peer_id, torr_dict, length)
 
         ipv4_peer_bytes = tracker_response[b'peers']
         seeders = tracker_response[b'complete']
@@ -37,14 +44,9 @@ if __name__=="__main__":
         print(f"seeders: {seeders}, leechers: {leechers}, downloaded: {downloaded}", flush=True)
         print(f"peers found: {len(peer_list)}", flush=True)
 
-        # step 3: contact a peer and do a handshake
-        s = contact_peer(my_peer_id=peer_id, peer_list=peer_list, info_hash=info_hash)
-        # here s is the peer that has unchoked us and we can start downloading from it
-
-        # step 4: download from peer
-        download_from_peer(s, 0, piece_length, pieces)
-
-
+        # step 3: contact the peers and download pieces
+        create_empty_file("output.file", total_size=length)
+        download_and_save(num_pieces, peer_list, peer_id, info_hash, piece_length, pieces)
 
     except Exception as e:
         print(e)

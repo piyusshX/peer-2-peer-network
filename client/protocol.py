@@ -45,6 +45,6 @@ def check_peer_response(s):
                     return 1, payload
                 
     except Exception as e:
-        print(e)
+        print(f"protocol error: {e}")
         return 0, 0
 

@@ -5,6 +5,7 @@ import os
 import requests
 import socket
 import struct
+import pyfiglet
 from decoder import main as decode, load_and_decode
 from encoder import main as bencode
 from info_hash import calculate_info_hash
@@ -21,6 +22,8 @@ start = time.time()
 peer_id = b'-PC0001-' + os.urandom(12)
 torr_file = 'c:/Projects/torrent/peer-2-peer-network/examples/2092471.torrent'
 
+text = pyfiglet.figlet_format("Torrent Client Initializing", font="slant")
+print(text)
 
 if __name__=="__main__":
     try:
@@ -67,11 +70,15 @@ if __name__=="__main__":
         print(f"")
         assemble_file(num_pieces, name, output_path="output", final_output="output file")
 
-        # step 6: happi
-        end = time.time()
-        length = end - start
-        min = int(length / 60)
-        sec = int(length % 60)
-        print(f"It took {min} minutes {sec} seconds!")
+        
     except Exception as e:
-        print(e)
+        print(f"Exception in main: {e}")
+        
+    # step 6: happi
+    text = pyfiglet.figlet_format("File Downloaded!", font="slant")
+    print(text)
+    end = time.time()
+    length = end - start
+    min = int(length / 60)
+    sec = int(length % 60)
+    print(f"It took {min} minutes {sec} seconds!")

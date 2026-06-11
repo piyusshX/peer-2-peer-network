@@ -134,8 +134,8 @@ def download_with_multiple_peers(num_pieces, working_peers, piece_length, pieces
 
             save_piece(piece_index, piece_data, name)
             downloaded_pieces.add(piece_index)
-            save_progress(name, num_pieces, downloaded_pieces)
-
+            if len(downloaded_pieces) % 5 == 0:
+                save_progress(name, num_pieces, downloaded_pieces)
 
             print(f"\nPiece {piece_index} saved") # hash is already verified
             show_progress(downloaded_pieces, num_pieces)
@@ -153,7 +153,7 @@ def download_piece_pipelined(s, piece_index, piece_length, pieces_hash, total_le
 
     piece_data = [None] * total_blocks
 
-    pipeline = 5  # number of requests in flight
+    pipeline = 100  # number of requests in flight
     requested = 0
     received = 0
 

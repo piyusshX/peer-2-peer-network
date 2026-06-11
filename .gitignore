@@ -5,3 +5,5 @@ __pycache__/*
 
 client/output.file
 client/output/*/_progress
+client/assets/ui light.png
+client/output file/*
